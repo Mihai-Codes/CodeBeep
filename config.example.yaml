@@ -1,0 +1,107 @@
+# codebeep Configuration
+# Copy this file to config.yaml and fill in your values
+
+# Matrix/Beeper connection settings
+matrix:
+  # Your Beeper homeserver URL
+  homeserver: "https://matrix.beeper.com"
+  
+  # Bot username (create a new Beeper account for the bot)
+  # Format: @username:beeper.local
+  username: "@codebeep-bot:beeper.local"
+  
+  # Authentication (use ONE of these methods)
+  # Option 1: Password
+  password: "your-bot-password"
+  
+  # Option 2: Access token (more secure, get from Element or similar)
+  # access_token: "syt_..."
+  
+  # Allowed users who can interact with the bot
+  # Leave empty to allow anyone (not recommended)
+  allowed_users:
+    - "@your-main-account:beeper.local"
+  
+  # Device name for the bot
+  device_name: "codebeep"
+
+# OpenCode server settings
+opencode:
+  # OpenCode server URL (default: localhost)
+  server_url: "http://127.0.0.1:4096"
+  
+  # Default agent to use (build or plan)
+  default_agent: "build"
+  
+  # Default project path (optional)
+  # If not set, uses the current working directory
+  # project_path: "/path/to/your/project"
+  
+  # Session timeout in seconds
+  session_timeout: 3600
+
+# AI Provider settings
+providers:
+  # Primary provider to use
+  # Options: antigravity, copilot, openai, anthropic, google
+  primary: "antigravity"
+  
+  # Fallback providers (in order of preference)
+  fallback:
+    - "copilot"
+    - "google"
+  
+  # Antigravity Manager settings (FREE via Google AI Studio)
+  antigravity:
+    base_url: "http://127.0.0.1:8045/v1"
+    api_key: "sk-antigravity"
+    default_model: "claude-opus-4-5-thinking"
+  
+  # GitHub Copilot settings (requires Copilot Pro+ subscription)
+  copilot:
+    # Uses your existing Copilot authentication
+    default_model: "claude-opus-4.5"
+  
+  # Direct Google AI settings (optional backup)
+  google:
+    api_key: ""  # Your Google AI API key
+    default_model: "gemini-3-pro-high"
+
+# GitHub integration (optional)
+github:
+  # Personal access token with repo scope
+  token: ""
+  
+  # Default repository (owner/repo format)
+  # default_repo: "your-username/your-repo"
+  
+  # Auto-assign yourself to issues you work on
+  auto_assign: true
+
+# Logging settings
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  
+  # Log file path (optional)
+  # file: "/var/log/codebeep/codebeep.log"
+  
+  # Log to console
+  console: true
+
+# Bot behavior settings
+bot:
+  # Command prefix (default: /)
+  prefix: "/"
+  
+  # Send typing indicators while processing
+  typing_indicator: true
+  
+  # Maximum message length before splitting
+  max_message_length: 4000
+  
+  # Rate limiting (messages per minute)
+  rate_limit: 30
+  
+  # Auto-reply to unknown commands
+  unknown_command_reply: true
