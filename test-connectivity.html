@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenCode Connectivity Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: -20px auto; padding: 20px; }
+        .test { margin: 10px 0; padding: -10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; }
+        .failure { background-color: #f8d7da; }
+        button { margin: 5px; padding: 10px; }
+        pre { background: #f4f4f4; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>OpenCode Connectivity Test</h1>
+    
+    <div class="test">
+        <h3>Test 1: Direct HTTP Request</h3>
+        <button onclick="testDirect()">Test Direct Connection</button>
+        <div id="direct-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Test 2: Basic Auth with Credentials in URL</h3>
+        <p>Try this URL in Safari: <code>http://opencode:Pncdfrwll25121997m@!@100.65.3.121:4096</code></p>
+        <button onclick="testAuthURL()">Test Auth URL</button>
+        <div id="auth-url-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Test 3: Fetch with Headers</h3>
+        <button onclick="testFetchWithHeaders()">Test Fetch with Headers</button>
+        <div id="fetch-result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Test 4: MagicDNS</h3>
+        <p>Try: <code>http://mihais-macbook-pro:4096</code></p>
+        <button onclick="testMagicDNS()">Test MagicDNS</button>
+        <div id="magicdns-result"></div>
+    </div>
+
+    <script>
+        async function testDirect() {
+            try {
+                const response = await fetch('http://100.65.3.121:4096/health');
+                document.getElementById('direct-result').innerHTML = 
+                    `<pre>Status: ${response.status} ${response.statusText}</pre>`;
+            } catch (error) {
+                document.getElementById('direct-result').innerHTML = 
+                    `<pre class="failure">Error: ${error}</pre>`;
+            }
+        }
+
+        async function testAuthURL() {
+            try {
+                const response = await fetch('http://opencode:Pncdfrwll25121997m@!@100.65.3.121:4096/health');
+                document.getElementById('auth-url-result').innerHTML = 
+                    `<pre>Status: ${response.status} ${response.statusText}</pre>`;
+            } catch (error) {
+                document.getElementById('auth-url-result').innerHTML = 
+                    `<pre class="failure">Error: ${error}</pre>`;
+            }
+        }
+
+        async function testFetchWithHeaders() {
+            try {
+                const headers = new Headers();
+                headers.set('Authorization', 'Basic ' + btoa('opencode:Pncdfrwll25121997m@!'));
+                const response = await fetch('http://100.65.3.121:4096/health', { headers });
+                document.getElementById('fetch-result').innerHTML = 
+                    `<pre>Status: ${response.status} ${response.statusText}</pre>`;
+            } catch (error) {
+                document.getElementById('fetch-result').innerHTML = 
+                    `<pre class="failure">Error: ${error}</pre>`;
+            }
+        }
+
+        async function testMagicDNS() {
+            try {
+                const response = await fetch('http://mihais-macbook-pro:4096/health');
+                document.getElementById('magicdns-result').innerHTML = 
+                    `<pre>Status: ${response.status} ${response.statusText}</pre>`;
+            } catch (error) {
+                document.getElementById('magicdns-result').innerHTML = 
+                    `<pre class="failure">Error: ${error}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>

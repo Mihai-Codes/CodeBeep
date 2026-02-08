@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  codebeep:
+    build: .
+    container_name: codebeep
+    restart: unless-stopped
+    environment:
+      - MATRIX_HOMESERVER=${MATRIX_HOMESERVER:-https://matrix.beeper.com}
+      - MATRIX_USERNAME=${MATRIX_USERNAME}
+      - MATRIX_PASSWORD=${MATRIX_PASSWORD}
+      - OPENCODE_SERVER_URL=http://host.docker.internal:4096
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./logs:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

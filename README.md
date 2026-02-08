@@ -37,6 +37,20 @@
 
 ### Installation
 
+#### Method 1: Docker (Recommended)
+```bash
+# Clone the repository
+git clone https://github.com/Mihai-Codes/codebeep.git
+cd codebeep
+
+# Build and run with Docker (solves python-olm compilation issues)
+docker-compose up -d
+
+# Check logs
+docker-compose logs -f
+```
+
+#### Method 2: Native Python
 ```bash
 # Clone the repository
 git clone https://github.com/Mihai-Codes/codebeep.git
@@ -52,8 +66,21 @@ cp config.example.yaml config.yaml
 # Edit config.yaml with your Beeper credentials
 ```
 
-### Auto-Start (macOS)
+### Auto-Start Options
 
+#### Option 1: Docker (Recommended - Solves python-olm issues)
+```bash
+# Build and run with Docker
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+#### Option 2: macOS LaunchAgent
 This project includes a LaunchAgent to keep the bot running in the background.
 
 1. **Install the Service:**
