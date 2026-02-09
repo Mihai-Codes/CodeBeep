@@ -1,0 +1,111 @@
+# codebeep Configuration for Mihai's Setup
+# HTTPS enabled via Tailscale Serve: https://mihais-macbook-pro.taila9246e.ts.net
+
+# Matrix/Beeper connection settings
+matrix:
+  # Your Beeper homeserver URL
+  homeserver: "https://matrix.beeper.com"
+  
+  # Bot username (create a new Beeper account for the bot)
+  # Format: @username:beeper.local
+  username: "@codebeep-bot:beeper.local"
+  
+  # Authentication (use ONE of these methods)
+  # Option 1: Password (less secure)
+  # password: "your-bot-password"
+  
+  # Option 2: Access token (more secure, recommended)
+  # To get access token:
+  # 1. Log into Beeper desktop app
+  # 2. Settings → Developers → "+" → Create token
+  # 3. Copy the token here
+  access_token: "YOUR_ACCESS_TOKEN_HERE"
+  
+  # Allowed users who can interact with the bot
+  allowed_users:
+    - "@mihai:beeper.local"
+  
+  # Device name for the bot
+  device_name: "codebeep"
+
+# OpenCode server settings
+opencode:
+  # OpenCode server URL with HTTPS via Tailscale Serve
+  server_url: "https://mihais-macbook-pro.taila9246e.ts.net"
+  
+  # Basic Auth credentials for OpenCode
+  auth:
+    username: "opencode"
+    password: "Pncdfrwll25121997m@!"
+  
+  # Default agent to use (build or plan)
+  default_agent: "build"
+  
+  # Session timeout in seconds
+  session_timeout: 3600
+
+# AI Provider settings
+providers:
+  # Primary provider to use
+  # Options: antigravity, copilot, openai, anthropic, google
+  primary: "antigravity"
+  
+  # Fallback providers (in order of preference)
+  fallback:
+    - "copilot"
+    - "google"
+  
+  # Antigravity Manager settings (FREE via Google AI Studio)
+  antigravity:
+    base_url: "http://127.0.0.1:8045/v1"
+    api_key: "sk-antigravity"
+    default_model: "claude-opus-4-5-thinking"
+  
+  # GitHub Copilot settings (requires Copilot Pro+ subscription)
+  copilot:
+    # Uses your existing Copilot authentication
+    default_model: "claude-opus-4.5"
+  
+  # Direct Google AI settings (optional backup)
+  google:
+    api_key: ""  # Your Google AI API key
+    default_model: "gemini-3-pro-high"
+
+# GitHub integration (optional)
+github:
+  # Personal access token with repo scope
+  token: ""
+  
+  # Default repository (owner/repo format)
+  # default_repo: "Mihai-Codes/codebeep"
+  
+  # Auto-assign yourself to issues you work on
+  auto_assign: true
+
+# Logging settings
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+  
+  # Log file path (optional)
+  # file: "/var/log/codebeep/codebeep.log"
+  
+  # Log to console
+  console: true
+
+# Bot behavior settings
+bot:
+  # Command prefix (default: /)
+  prefix: "/"
+  
+  # Send typing indicators while processing
+  typing_indicator: true
+  
+  # Maximum message length before splitting
+  max_message_length: 4000
+  
+  # Rate limiting (messages per minute)
+  rate_limit: 30
+  
+  # Auto-reply to unknown commands
+  unknown_command_reply: true
