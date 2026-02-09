@@ -6,6 +6,8 @@
 
 **codebeep** is a self-hosted AI coding agent that lets you assign coding tasks from your phone via [Beeper](https://beeper.com) (Matrix protocol). It integrates with [OpenCode](https://opencode.ai) to provide the same powerful coding capabilities you have on desktop, but accessible from anywhere.
 
+Inspired by [OpenClaw](https://github.com/openclaw/openclaw) - a personal AI assistant that runs on your own devices and answers on channels you already use.
+
 ## Recent Updates (February 2026)
 
 - ✅ **Fixed KeyError**: Resolved 'createdAt' parsing issues when communicating with OpenCode API
