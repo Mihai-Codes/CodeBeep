@@ -23,6 +23,10 @@ class Session:
     created_at: str
     updated_at: str
     share: dict[str, Any] | None = None
+    slug: str | None = None
+    version: str | None = None
+    project_id: str | None = None
+    directory: str | None = None
 
 
 @dataclass
@@ -34,6 +38,9 @@ class Message:
     role: str
     created_at: str
     parts: list[dict[str, Any]]
+    agent: str | None = None
+    model: dict[str, str] | None = None
+    parent_id: str | None = None
 
 
 @dataclass
@@ -116,9 +123,13 @@ class OpenCodeClient:
                 id=s["id"],
                 title=s.get("title"),
                 parent_id=s.get("parentID"),
-                created_at=s["createdAt"],
-                updated_at=s["updatedAt"],
+                created_at=str(s.get("time", {}).get("created", "")),
+                updated_at=str(s.get("time", {}).get("updated", "")),
                 share=s.get("share"),
+                slug=s.get("slug"),
+                version=s.get("version"),
+                project_id=s.get("projectID"),
+                directory=s.get("directory"),
             )
             for s in data
         ]
@@ -171,9 +182,13 @@ class OpenCodeClient:
             id=s["id"],
             title=s.get("title"),
             parent_id=s.get("parentID"),
-            created_at=s["createdAt"],
-            updated_at=s["updatedAt"],
+            created_at=str(s.get("time", {}).get("created", "")),
+            updated_at=str(s.get("time", {}).get("updated", "")),
             share=s.get("share"),
+            slug=s.get("slug"),
+            version=s.get("version"),
+            project_id=s.get("projectID"),
+            directory=s.get("directory"),
         )
 
     async def get_session(self, session_id: str) -> Session:
@@ -193,9 +208,13 @@ class OpenCodeClient:
             id=s["id"],
             title=s.get("title"),
             parent_id=s.get("parentID"),
-            created_at=s["createdAt"],
-            updated_at=s["updatedAt"],
+            created_at=str(s.get("time", {}).get("created", "")),
+            updated_at=str(s.get("time", {}).get("updated", "")),
             share=s.get("share"),
+            slug=s.get("slug"),
+            version=s.get("version"),
+            project_id=s.get("projectID"),
+            directory=s.get("directory"),
         )
 
     async def delete_session(self, session_id: str) -> bool:
@@ -253,8 +272,11 @@ class OpenCodeClient:
                 id=m["info"]["id"],
                 session_id=m["info"]["sessionID"],
                 role=m["info"]["role"],
-                created_at=m["info"]["createdAt"],
+                created_at=str(m["info"].get("time", {}).get("created", "")),
                 parts=m.get("parts", []),
+                agent=m["info"].get("agent"),
+                model=m["info"].get("model"),
+                parent_id=m["info"].get("parentID"),
             )
             for m in data
         ]
@@ -298,8 +320,11 @@ class OpenCodeClient:
             id=m["info"]["id"],
             session_id=m["info"]["sessionID"],
             role=m["info"]["role"],
-            created_at=m["info"]["createdAt"],
+            created_at=str(m["info"].get("time", {}).get("created", "")),
             parts=m.get("parts", []),
+            agent=m["info"].get("agent"),
+            model=m["info"].get("model"),
+            parent_id=m["info"].get("parentID"),
         )
 
     async def send_message_async(
@@ -326,8 +351,21 @@ class OpenCodeClient:
         if model:
             body["model"] = model
 
-        response = await client.post(f"/session/{session_id}/prompt_async", json=body)
-        response.raise_for_status()
+        # Try the message endpoint (sync) with a fire-and-forget approach
+        # Since we're not waiting for the response anyway, we can use the sync endpoint
+        try:
+            # Use a shorter timeout since we're not waiting for response
+            response = await client.post(
+                f"/session/{session_id}/message",
+                json=body,
+                timeout=10.0,  # Short timeout since we're not waiting for full response
+            )
+            # Don't raise_for_status here to avoid waiting for full processing
+        except Exception as e:
+            logger.warning(f"Error sending async message: {e}")
+            # Still raise if it's a critical error (like connection issues)
+            if "connection" in str(e).lower() or "timeout" in str(e).lower():
+                raise
 
     async def execute_command(
         self,
@@ -370,8 +408,11 @@ class OpenCodeClient:
             id=m["info"]["id"],
             session_id=m["info"]["sessionID"],
             role=m["info"]["role"],
-            created_at=m["info"]["createdAt"],
+            created_at=str(m["info"].get("time", {}).get("created", "")),
             parts=m.get("parts", []),
+            agent=m["info"].get("agent"),
+            model=m["info"].get("model"),
+            parent_id=m["info"].get("parentID"),
         )
 
     async def list_agents(self) -> list[dict[str, Any]]:

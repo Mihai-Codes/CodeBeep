@@ -5,8 +5,9 @@ services:
     build: .
     container_name: codebeep
     restart: unless-stopped
+    command: ["run", "--config", "/app/config.yaml"]
     environment:
-      - MATRIX_HOMESERVER=${MATRIX_HOMESERVER:-https://matrix.beeper.com}
+      - MATRIX_HOMESERVER=https://matrix-client.matrix.org
       - MATRIX_USERNAME=${MATRIX_USERNAME}
       - MATRIX_PASSWORD=${MATRIX_PASSWORD}
       - OPENCODE_SERVER_URL=http://host.docker.internal:4096

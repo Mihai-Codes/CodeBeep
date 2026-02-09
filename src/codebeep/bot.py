@@ -6,6 +6,7 @@ import asyncio
 import logging
 from typing import Any
 
+from nio import InviteMemberEvent, MegolmEvent, RoomMessageText, Event, RoomPreset
 import simplematrixbotlib as botlib
 
 from codebeep.commands import ALL_COMMANDS, Command, CommandResult
@@ -91,20 +92,47 @@ class CodeBeepBot:
             return True  # No restrictions
         return user_id in allowed
 
-    async def handle_message(self, room: Any, message: Any) -> None:
+    async def handle_message(self, room: Any, event: Any) -> None:
         """Handle incoming messages.
 
         Args:
             room: Matrix room
-            message: Message event
+            event: Message event
         """
-        # Ignore messages from the bot itself
-        match = botlib.MessageMatch(room, message, self.bot, self.config.bot.prefix)
-        if not match.is_not_from_this_bot():
+        # Defensive checks
+        if not hasattr(event, "sender") or not event.sender:
+            logger.info(f"DEBUG: Event has no sender, ignoring")
             return
 
-        sender = message.sender
-        body = message.body
+        logger.info(f"DEBUG: handle_message called for room {room.room_id} from {event.sender}")
+
+        # Extract message body from event
+        body = (
+            event.body
+            if hasattr(event, "body")
+            else event.source.get("content", {}).get("body", "")
+        )
+        sender = event.sender
+
+        # Check if message has content
+        if not body:
+            logger.info(f"DEBUG: Message has no body, ignoring")
+            return
+
+        # Use MessageMatch to check if message is from bot
+        try:
+            match = botlib.MessageMatch(room, event, self.bot, self.config.bot.prefix)
+            if not match.is_not_from_this_bot():
+                logger.info(f"DEBUG: Message from bot itself, ignoring")
+                return
+        except Exception as e:
+            logger.warning(f"DEBUG: MessageMatch error: {e}, falling back to manual check")
+            # Fallback: manually check if sender is the bot
+            if sender == self.config.matrix.username:
+                logger.info(f"DEBUG: Message from bot itself (manual check), ignoring")
+                return
+
+        logger.info(f"DEBUG: Processing message from {sender}: '{body}'")
 
         # Check if user is allowed
         if not self.is_user_allowed(sender):
@@ -202,18 +230,84 @@ class CodeBeepBot:
             logger.error(f"Failed to connect to OpenCode server: {e}")
             raise
 
+        # Run the bot
+        logger.info("Bot is running. Waiting for messages...")
+        await self.bot.api.login()
+
         # Register message handler
-        @self.bot.listener.on_message_event
-        async def on_message(room: Any, message: Any) -> None:
-            await self.handle_message(room, message)
+        async def on_message(room: Any, event: Any) -> None:
+            await self.handle_message(room, event)
+
+        self.bot.api.async_client.add_event_callback(on_message, RoomMessageText)
+
+        # Register invite handler
+        async def on_invite(room: Any, event: Any) -> None:
+            if not isinstance(event, InviteMemberEvent):
+                return
+            sender = event.sender
+            if self.is_user_allowed(sender):
+                logger.info(f"Joining room {room.room_id} invited by {sender}")
+                await self.bot.api.async_client.join(room.room_id)
+            else:
+                logger.warning(f"Ignoring invite from {sender} to {room.room_id}")
+
+        self.bot.api.async_client.add_event_callback(on_invite, InviteMemberEvent)
+
+        # Debug: Log encrypted events
+        async def on_encrypted(room: Any, event: MegolmEvent) -> None:
+            logger.info(f"DEBUG: Received Encrypted Event in {room.room_id} from {event.sender}")
+
+        self.bot.api.async_client.add_event_callback(on_encrypted, MegolmEvent)
+
+        # Debug: Log decrypted text events
+        async def on_text_debug(room: Any, event: RoomMessageText) -> None:
+            logger.info(
+                f"DEBUG: Received Decrypted Text in {room.room_id} from {event.sender}: '{event.body}'"
+            )
+
+        self.bot.api.async_client.add_event_callback(on_text_debug, RoomMessageText)
 
         # Start event monitoring
         self._event_task = asyncio.create_task(self._monitor_events())
 
-        # Run the bot
-        logger.info("Bot is running. Waiting for messages...")
-        await self.bot.api.login()
-        await self.bot.api.sync_forever(timeout=30000)
+        # Bootstrap: Create unencrypted room
+        try:
+            logger.info("Bootstrapping: Creating CodeBeep Shell room...")
+            # Create room without encryption
+            resp = await self.bot.api.async_client.room_create(
+                name="CodeBeep Shell",
+                topic="Unencrypted command shell for CodeBeep",
+                preset=RoomPreset.private_chat,
+            )
+            # Log result
+            logger.info(f"Room create response: {resp}")
+            room_id = resp.room_id
+            logger.info(f"Created room: {room_id}")
+
+            # Create room alias for easier joining
+            alias = "#codebeep-shell:matrix.org"
+            logger.info(f"Setting room alias: {alias}")
+            alias_resp = await self.bot.api.async_client.room_put_alias(
+                room_alias=alias, room_id=room_id
+            )
+            logger.info(f"Alias response: {alias_resp}")
+
+            # Log matrix.to link
+            logger.info(f"==================================================")
+            logger.info(f"JOIN LINK: https://matrix.to/#/{alias}")
+            logger.info(f"ROOM ID: {room_id}")
+            logger.info(f"==================================================")
+
+            # Explicitly invite the user
+            logger.info(f"Inviting @mihai-chindris:beeper.com to room {room_id}...")
+            invite_resp = await self.bot.api.async_client.room_invite(
+                room_id=room_id, user_id="@mihai-chindris:beeper.com"
+            )
+            logger.info(f"Invite response: {invite_resp}")
+        except Exception as e:
+            logger.error(f"Bootstrap error: {e}")
+
+        await self.bot.api.async_client.sync_forever(timeout=30000)
 
     async def stop(self) -> None:
         """Stop the bot."""
