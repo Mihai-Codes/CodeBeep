@@ -1,10 +1,18 @@
 # codebeep
 
-> Your AI coding agent, accessible from anywhere via Beeper/Matrix.
+> Your AI coding agent, accessible from anywhere via Matrix/Beeper.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 **codebeep** is a self-hosted AI coding agent that lets you assign coding tasks from your phone via [Beeper](https://beeper.com) (Matrix protocol). It integrates with [OpenCode](https://opencode.ai) to provide the same powerful coding capabilities you have on desktop, but accessible from anywhere.
+
+## Recent Updates (February 2026)
+
+- ✅ **Fixed KeyError**: Resolved 'createdAt' parsing issues when communicating with OpenCode API
+- ✅ **Self-Reply Prevention**: Added defensive checks to prevent infinite bot response loops
+- ✅ **Room Bootstrap**: Implemented automatic creation of unencrypted "CodeBeep Shell" room for commands
+- ✅ **Enhanced Logging**: Improved debugging with comprehensive message flow logging
+- ✅ **Error Handling**: Better fallback mechanisms for encrypted room handling
 
 ## Why codebeep?
 
@@ -21,11 +29,12 @@
 
 ## Features
 
-- **Mobile-first**: Assign coding tasks from your phone via Beeper
+- **Mobile-first**: Assign coding tasks from your phone via Beeper/Matrix
 - **OpenCode Integration**: Full access to OpenCode's build and plan agents
-- **GitHub Integration**: Assign yourself to issues, create PRs, review code
-- **MCP Tools**: Access all your MCP tools from mobile
 - **Self-hosted**: Your code, your data, your control
+- **Unencrypted Shell Room**: Dedicated room for reliable command execution
+- **Error Resilience**: Handles rate limiting and transient failures gracefully
+- **Multi-Provider Support**: Works with any OpenCode-compatible AI provider
 
 ## Quick Start
 
@@ -114,15 +123,52 @@ opencode:
 
 ```
 Phone (Beeper App)
-       │
-       │ Matrix Protocol (E2EE)
-       ▼
-Your Mac (codebeep bot)
-       │
-       ├──► OpenCode Server (:4096)
-       │         │
-       │         └──► MCP Tools, Agents
+        │
+        │ Matrix Protocol (E2EE)
+        ▼
+codebeep Bot (Docker)
+        │
+        ├──► OpenCode Server (:4096)
+        │         │
+        │         └──► AI Agents (build, plan, general, etc.)
+        │                   │
+        │                   └──► MCP Tools, Code Execution
+        │
+        └──► Matrix Rooms
+                  │
+                  └──► CodeBeep Shell (unencrypted)
+                            │
+                            └──► Command Interface
 ```
+
+## Available Commands
+
+- `/build <task>` - Execute a coding task with full file access
+- `/plan <request>` - Analyze code without making changes
+- `/status` - Check current session status
+- `/agents` - List available AI agents
+- `/sessions` - List all sessions
+- `/help` - Show help information
+
+## Current Status
+
+✅ **Working**: Basic commands (/help, /status, /agents), Docker deployment  
+⚠️ **In Progress**: Action commands (/build, /plan) - working but may have occasional errors
+
+## Known Issues
+
+- Room creation may fail due to Matrix rate limiting (retries implemented)
+- Some API response formats may cause intermittent errors (being addressed)
+
+## Roadmap
+
+See [ISSUES.md](ISSUES.md) for planned improvements:
+
+1. Persistent KeyError investigation
+2. Session state persistence
+3. Robust error handling
+4. Room creation reliability
+5. Message deduplication
 
 ## License
 
