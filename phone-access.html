@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenCode Phone Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f7;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .method {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e9ecef;
+        }
+        button {
+            width: 100%;
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: -16px;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056cc;
+        }
+        .url {
+            background: #e9ecef;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 OpenCode Phone Access</h1>
+        <p>Choose the method that works best on your phone:</p>
+        
+        <div class="method">
+            <h3>Method 1: Direct IP (Recommended)</h3>
+            <p>Works on all browsers:</p>
+            <div class="url">http://100.65.3.121:4096</div>
+            <button onclick="window.open('http://100.65.3.121:4096', '_blank')">Open OpenCode</button>
+            <p><small>Credentials: username <code>opencode</code>, password <code>Pncdfrwll25121997m@!</code></small></p>
+        </div>
+        
+        <div class="method">
+            <h3>Method 2: Embedded Credentials</h3>
+            <p>For Safari compatibility:</p>
+            <div class="url">http://opencode:Pncdfrwll25121997m@!@100.65.3.121:4096</div>
+            <button onclick="window.open('http://opencode:Pncdfrwll25121997m@!@100.65.3.121:4096', '_blank')">Open with Credentials</button>
+        </div>
+        
+        <div class="method">
+            <h3>Method 3: HTTPS Domain</h3>
+            <p>Try if others don't work:</p>
+            <div class="url">https://mihais-macbook-pro.taila9246e.ts.net</div>
+            <button onclick="window.open('https://mihais-macbook-pro.taila9246e.ts.net', '_blank')">Try HTTPS</button>
+        </div>
+        
+        <div class="note">
+            <strong>📝 Note:</strong> Your phone must be connected to Tailscale. Open the Tailscale app on your phone first to ensure you're connected to the same network.
+        </div>
+        
+        <h3>Quick Test:</h3>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="testResult" style="margin-top: 15px;"></div>
+    </div>
+    
+    <script>
+        async function testConnection() {
+            const resultEl = document.getElementById('testResult');
+            resultEl.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://100.65.3.121:4096/health');
+                if (response.status === 401) {
+                    resultEl.innerHTML = '<span style="color: #28a745;">✅ Server is reachable! Ready for login.</span>';
+                } else if (response.ok) {
+                    resultEl.innerHTML = '<span style="color: #28a745;">✅ Server is reachable and working!</span>';
+                } else {
+                    resultEl.innerHTML = `<span style="color: #dc3545;">❌ Server responded: ${response.status}</span>`;
+                }
+            } catch (error) {
+                resultEl.innerHTML = `<span style="color: #dc3545;">❌ Cannot connect: ${error.message}</span>`;
+            }
+        }
+        
+        // Test on page load
+        testConnection();
+    </script>
+</body>
+</html>
