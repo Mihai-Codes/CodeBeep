@@ -1,0 +1,41 @@
+version = 1
+
+[[analyzers]]
+name = "python"
+enabled = true
+
+  [analyzers.meta]
+  runtime_version = "3.x"
+  max_line_length = 100
+  skip_doc_coverage = ["tests", "docs"]
+
+[[analyzers]]
+name = "docker"
+enabled = true
+
+[[exclude_patterns]]
+pattern = "venv/**"
+
+[[exclude_patterns]]
+pattern = ".venv/**"
+
+[[exclude_patterns]]
+pattern = "__pycache__/**"
+
+[[exclude_patterns]]
+pattern = ".ruff_cache/**"
+
+[[exclude_patterns]]
+pattern = "logs/**"
+
+[[exclude_patterns]]
+pattern = "tests/**"
+
+[[exclude_patterns]]
+pattern = "docs/**"
+
+[[exclude_patterns]]
+pattern = "*.yaml"
+
+[[exclude_patterns]]
+pattern = "*.yml"
