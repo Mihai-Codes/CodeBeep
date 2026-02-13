@@ -39,3 +39,5 @@ pattern = "*.yaml"
 
 [[exclude_patterns]]
 pattern = "*.yml"
+
+# Trigger DeepSource re-analysis
