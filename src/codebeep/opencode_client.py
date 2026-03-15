@@ -257,10 +257,10 @@ class OpenCodeClient:
         )
 
     def _parse_message(self, payload: dict[str, Any]) -> Message:
-        info = payload.get("info")
-        if not isinstance(info, dict):
-            info = payload
-        message_id = info.get("id") or payload.get("id")
+        info: dict[str, Any] = payload["info"] if isinstance(payload.get("info"), dict) else payload
+        info_message = info.get("message")
+        nested_message: dict[str, Any] = info_message if isinstance(info_message, dict) else {}
+        message_id = info.get("id") or payload.get("id") or nested_message.get("id")
         if not message_id:
             raise OpenCodeInvalidResponseError("Missing 'id' in message payload")
         session_id = (
@@ -270,13 +270,25 @@ class OpenCodeClient:
             or payload.get("sessionId")
         )
         if not session_id:
+            session_id = nested_message.get("sessionID") or nested_message.get("sessionId")
+        if not session_id:
             raise OpenCodeInvalidResponseError("Missing 'sessionID' in message.info payload")
         role = info.get("role") or payload.get("role")
         if not role:
+            role = nested_message.get("role")
+        if not role:
             raise OpenCodeInvalidResponseError("Missing 'role' in message.info payload")
-        parts = payload.get("parts")
-        if not isinstance(parts, list):
-            parts = info.get("parts") if isinstance(info.get("parts"), list) else []
+        parts: list[dict[str, Any]] = []
+        payload_parts = payload.get("parts")
+        if isinstance(payload_parts, list):
+            parts = [p for p in payload_parts if isinstance(p, dict)]
+        info_parts = info.get("parts")
+        if not parts and isinstance(info_parts, list):
+            parts = [p for p in info_parts if isinstance(p, dict)]
+        if not parts:
+            fallback_parts = nested_message.get("parts")
+            if isinstance(fallback_parts, list):
+                parts = [p for p in fallback_parts if isinstance(p, dict)]
         return Message(
             id=message_id,
             session_id=session_id,

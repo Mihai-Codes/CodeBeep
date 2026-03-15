@@ -8,7 +8,7 @@
 
 Inspired by [OpenClaw](https://github.com/openclaw/openclaw) - a personal AI assistant that runs on your own devices and answers on channels you already use.
 
-## Recent Updates (February 2026)
+## Recent Updates
 
 - **Fixed KeyError**: Resolved 'createdAt' parsing issues when communicating with OpenCode API
 - **Self-Reply Prevention**: Added defensive checks to prevent infinite bot response loops
