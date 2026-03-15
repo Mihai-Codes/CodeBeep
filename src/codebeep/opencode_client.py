@@ -259,23 +259,38 @@ class OpenCodeClient:
     def _parse_message(self, payload: dict[str, Any]) -> Message:
         info = payload.get("info")
         if not isinstance(info, dict):
-            raise OpenCodeInvalidResponseError("Missing 'info' in message payload")
-        message_id = self._require_field(info, "id", "message.info")
-        session_id = info.get("sessionID") or info.get("sessionId")
+            info = payload
+        message_id = info.get("id") or payload.get("id")
+        if not message_id:
+            raise OpenCodeInvalidResponseError("Missing 'id' in message payload")
+        session_id = (
+            info.get("sessionID")
+            or info.get("sessionId")
+            or payload.get("sessionID")
+            or payload.get("sessionId")
+        )
         if not session_id:
             raise OpenCodeInvalidResponseError("Missing 'sessionID' in message.info payload")
-        role = info.get("role")
+        role = info.get("role") or payload.get("role")
         if not role:
             raise OpenCodeInvalidResponseError("Missing 'role' in message.info payload")
+        parts = payload.get("parts")
+        if not isinstance(parts, list):
+            parts = info.get("parts") if isinstance(info.get("parts"), list) else []
         return Message(
             id=message_id,
             session_id=session_id,
             role=role,
             created_at=self._extract_time(info, "created"),
-            parts=payload.get("parts", []),
-            agent=info.get("agent"),
-            model=info.get("model"),
-            parent_id=info.get("parentID") or info.get("parentId"),
+            parts=parts,
+            agent=info.get("agent") or payload.get("agent"),
+            model=info.get("model") or payload.get("model"),
+            parent_id=(
+                info.get("parentID")
+                or info.get("parentId")
+                or payload.get("parentID")
+                or payload.get("parentId")
+            ),
         )
 
     async def health_check(self) -> dict[str, Any]:

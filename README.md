@@ -200,7 +200,7 @@ codebeep Bot (Docker)
 
 ## Roadmap
 
-See [ISSUES.md](ISSUES.md) for planned improvements:
+Planned improvements are tracked in GitHub Issues:
 
 1. Persistent KeyError investigation
 2. Session state persistence
