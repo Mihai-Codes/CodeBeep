@@ -8,14 +8,6 @@
 
 Inspired by [OpenClaw](https://github.com/openclaw/openclaw) - a personal AI assistant that runs on your own devices and answers on channels you already use.
 
-## Recent Updates
-
-- **Fixed KeyError**: Resolved 'createdAt' parsing issues when communicating with OpenCode API
-- **Self-Reply Prevention**: Added defensive checks to prevent infinite bot response loops
-- **Room Bootstrap**: Implemented automatic creation of unencrypted "CodeBeep Shell" room for commands
-- **Enhanced Logging**: Improved debugging with comprehensive message flow logging
-- **Error Handling**: Better fallback mechanisms for encrypted room handling
-
 ## Why codebeep?
 
 | Feature | Cursor Slack | Copilot Slack | codebeep |
