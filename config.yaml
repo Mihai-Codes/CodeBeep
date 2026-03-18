@@ -114,3 +114,10 @@ bot:
 
   # Persisted bot state (session + dedup cache)
   state_path: "/app/logs/.codebeep_store/state.json"
+
+  # Deduplicate incoming events
+  dedup_enabled: true
+  dedup_cache_size: 500
+
+  # Deduplicate identical messages without event IDs (seconds)
+  dedup_window_seconds: 10

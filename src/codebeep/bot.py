@@ -98,6 +98,8 @@ class CodeBeepBot:
             maxlen=config.bot.dedup_cache_size if self._dedup_enabled else None
         )
         self._seen_event_ids_set: set[str] = set()
+        self._message_fingerprint_window = max(0, config.bot.dedup_window_seconds)
+        self._message_fingerprints: deque[tuple[float, str]] = deque()
         if self._dedup_enabled and self.state.seen_event_ids:
             seed_ids = [e for e in self.state.seen_event_ids if isinstance(e, str) and e]
             maxlen = self._seen_event_ids.maxlen
@@ -154,6 +156,24 @@ class CodeBeepBot:
     def _get_event_id(self, event: Any) -> str | None:
         source = getattr(event, "source", None) or {}
         return getattr(event, "event_id", None) or source.get("event_id")
+
+    def _fingerprint_message(self, room_id: str, sender: str, body: str) -> str:
+        return f"{room_id}|{sender}|{body.strip()}"
+
+    def _is_duplicate_message(self, fingerprint: str) -> bool:
+        if self._message_fingerprint_window <= 0:
+            return False
+        now = time.time()
+        while (
+            self._message_fingerprints
+            and now - self._message_fingerprints[0][0] > self._message_fingerprint_window
+        ):
+            self._message_fingerprints.popleft()
+        for _, existing in self._message_fingerprints:
+            if existing == fingerprint:
+                return True
+        self._message_fingerprints.append((now, fingerprint))
+        return False
 
     async def get_or_create_session(self) -> Session:
         """Get the active session or create a new one.
@@ -230,6 +250,12 @@ class CodeBeepBot:
         if not body:
             logger.info(f"DEBUG: Message has no body, ignoring")
             return
+
+        if self._dedup_enabled and not event_id:
+            fingerprint = self._fingerprint_message(room.room_id, sender, body)
+            if self._is_duplicate_message(fingerprint):
+                logger.info("DEBUG: Duplicate message fingerprint, ignoring")
+                return
 
         # Use MessageMatch to check if message is from bot
         try:

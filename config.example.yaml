@@ -117,3 +117,6 @@ bot:
   # Deduplicate incoming events
   dedup_enabled: true
   dedup_cache_size: 500
+
+  # Deduplicate identical messages without event IDs (seconds)
+  dedup_window_seconds: 10

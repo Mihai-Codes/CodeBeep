@@ -96,6 +96,7 @@ class BotConfig(BaseModel):
     state_path: str = ".codebeep_store/state.json"
     dedup_enabled: bool = True
     dedup_cache_size: int = 500
+    dedup_window_seconds: int = 10
 
 
 class Config(BaseModel):
