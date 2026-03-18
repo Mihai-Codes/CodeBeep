@@ -17,6 +17,9 @@ class BotState:
     active_session_id: str | None = None
     current_model: str | None = None
     seen_event_ids: list[str] = field(default_factory=list)
+    shell_room_id: str | None = None
+    shell_room_alias: str | None = None
+    last_bootstrap_attempt: float | None = None
 
 
 class StateStore:
@@ -44,6 +47,9 @@ class StateStore:
                 active_session_id=data.get("active_session_id"),
                 current_model=data.get("current_model"),
                 seen_event_ids=seen_event_ids,
+                shell_room_id=data.get("shell_room_id"),
+                shell_room_alias=data.get("shell_room_alias"),
+                last_bootstrap_attempt=data.get("last_bootstrap_attempt"),
             )
         except Exception as exc:
             logger.warning(f"Failed to load state from {self.path}: {exc}")

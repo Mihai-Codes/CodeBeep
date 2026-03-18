@@ -6,6 +6,7 @@ import asyncio
 import json
 import logging
 import random
+import time
 from collections import deque
 from typing import Any, Iterable
 
@@ -88,6 +89,9 @@ class CodeBeepBot:
         self.current_model: str | None = self.state.current_model
         self.active_session: Session | None = None
         self._persisted_session_id: str | None = self.state.active_session_id
+        self._shell_room_id: str | None = self.state.shell_room_id
+        self._shell_room_alias: str | None = self.state.shell_room_alias
+        self._last_bootstrap_attempt: float | None = self.state.last_bootstrap_attempt
         self._event_task: asyncio.Task[None] | None = None
         self._dedup_enabled = config.bot.dedup_enabled and config.bot.dedup_cache_size > 0
         self._seen_event_ids: deque[str] = deque(
@@ -113,9 +117,18 @@ class CodeBeepBot:
     def _save_state(self) -> None:
         self.state.active_session_id = self._persisted_session_id
         self.state.current_model = self.current_model
+        self.state.shell_room_id = self._shell_room_id
+        self.state.shell_room_alias = self._shell_room_alias
+        self.state.last_bootstrap_attempt = self._last_bootstrap_attempt
         if self._dedup_enabled:
             self.state.seen_event_ids = list(self._seen_event_ids)
         self.state_store.save(self.state)
+
+    def _get_user_domain(self) -> str:
+        username = self.config.matrix.username
+        if ":" in username:
+            return username.split(":", 1)[1]
+        return "matrix.org"
 
     def _set_active_session(self, session: Session | None) -> None:
         self.active_session = session
@@ -385,10 +398,32 @@ class CodeBeepBot:
         return room_id if isinstance(room_id, str) else None
 
     async def _bootstrap_shell_room(self) -> None:
-        alias = "#codebeep-shell:matrix.org"
+        domain = self._get_user_domain()
+        alias = f"#codebeep-shell:{domain}"
+        now = time.time()
+        if self._last_bootstrap_attempt and now - self._last_bootstrap_attempt < 300:
+            logger.info("Skipping shell room bootstrap due to recent attempt")
+            return
+
+        self._last_bootstrap_attempt = now
+        self._save_state()
+
+        if self._shell_room_id:
+            logger.info(f"Shell room already recorded: {self._shell_room_id}")
+            return
+
+        if self._shell_room_alias and self._shell_room_alias != alias:
+            logger.info(
+                f"Shell room alias changed from {self._shell_room_alias} to {alias}, rechecking"
+            )
+            self._shell_room_alias = alias
+            self._save_state()
         existing_room_id = await self._resolve_room_alias(alias)
         if existing_room_id:
             logger.info(f"Shell room already exists: {existing_room_id}")
+            self._shell_room_id = existing_room_id
+            self._shell_room_alias = alias
+            self._save_state()
             return
 
         logger.info("Bootstrapping: Creating CodeBeep Shell room...")
@@ -412,6 +447,10 @@ class CodeBeepBot:
         if not room_id:
             logger.error(f"Room create returned no room_id: {response}")
             return
+
+        self._shell_room_id = room_id
+        self._shell_room_alias = alias
+        self._save_state()
 
         logger.info(f"Created room: {room_id}")
 
