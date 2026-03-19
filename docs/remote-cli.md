@@ -2,6 +2,40 @@
 
 This guide shows a resilient SSH workflow for mobile connections using mosh + tmux. It keeps sessions alive when your network drops or your phone sleeps.
 
+## Phone quick start
+
+Replace `mihai` and the example host below with your own username and machine.
+
+### Headscale IP examples
+
+```bash
+ssh mihai@100.64.0.42
+mosh mihai@100.64.0.42
+mosh --ssh="ssh -p 2222" mihai@100.64.0.42
+```
+
+### MagicDNS examples
+
+```bash
+ssh mihai@codebeep.tailnet.example
+mosh mihai@codebeep.tailnet.example
+mosh --ssh="ssh -p 2222" mihai@codebeep.tailnet.example
+```
+
+### iPhone and iPad
+
+- `Moshy`: best fit if you want native `mosh` on iOS.
+- `Termius`: good SSH client for quick access; pair it with `tmux` if you do not need `mosh`.
+
+### Android
+
+- `Termux`: install the tools locally, then run the same commands as above.
+
+```bash
+pkg update
+pkg install -y mosh openssh tmux
+```
+
 ## Install
 
 macOS:

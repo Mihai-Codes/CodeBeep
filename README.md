@@ -40,7 +40,7 @@ Inspired by [OpenClaw](https://github.com/openclaw/openclaw) - a personal AI ass
 
 ## Remote CLI
 
-See the mosh + tmux guide: [docs/remote-cli.md](docs/remote-cli.md)
+See the phone-friendly mosh + tmux guide: [docs/remote-cli.md](docs/remote-cli.md)
 
 **Beeper note:** Starting a new Matrix DM from Beeper is supported on Desktop and Android, but is still a work in progress on iOS. If you plan to message a `@bot:matrix.org` account from Beeper, use Desktop or Android for the first DM. See Beeper’s Matrix chat guide for details.
 
