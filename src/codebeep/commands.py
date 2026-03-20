@@ -396,8 +396,10 @@ class SSHCommand(Command):
     usage = "/ssh"
     aliases = ["mosh"]
 
-    async def execute(self, bot: CodeBeepBot, args: str) -> CommandResult:
-        del args
+    async def execute(
+        self, bot: CodeBeepBot, args: str, context: CommandContext
+    ) -> CommandResult:
+        del args, context
 
         host = (bot.config.bot.connect_host or "").strip()
         if not host:

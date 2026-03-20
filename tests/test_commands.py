@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from codebeep.commands import HelpCommand, SSHCommand
+from codebeep.commands import CommandContext, HelpCommand, SSHCommand
 from codebeep.config import Config
 
 
@@ -17,13 +17,16 @@ def make_config(**bot_overrides: object) -> Config:
     return Config.model_validate(payload)
 
 
+TEST_CONTEXT = CommandContext(room_id="!room:example.org", sender="@mihai:matrix.org")
+
+
 @pytest.mark.asyncio
 async def test_ssh_command_requires_configured_host() -> None:
     """The connect helper should stay disabled until a host is configured."""
     command = SSHCommand()
     bot = SimpleNamespace(config=make_config())
 
-    result = await command.execute(bot, "")
+    result = await command.execute(bot, "", TEST_CONTEXT)
 
     assert result.success is True
     assert "not configured" in result.message.lower()
@@ -38,7 +41,7 @@ async def test_ssh_command_formats_default_commands() -> None:
         config=make_config(connect_host="codebeep.tailnet.example", connect_user="mihai")
     )
 
-    result = await command.execute(bot, "")
+    result = await command.execute(bot, "", TEST_CONTEXT)
 
     assert result.success is True
     assert "`ssh mihai@codebeep.tailnet.example`" in result.message
@@ -57,7 +60,7 @@ async def test_ssh_command_formats_non_default_port() -> None:
         )
     )
 
-    result = await command.execute(bot, "")
+    result = await command.execute(bot, "", TEST_CONTEXT)
 
     assert "`ssh -p 2222 mihai@100.64.0.42`" in result.message
     assert '`mosh --ssh="ssh -p 2222" mihai@100.64.0.42`' in result.message
@@ -73,8 +76,23 @@ async def test_help_lists_ssh_command_once() -> None:
         commands={"ssh": ssh, "mosh": ssh},
     )
 
-    result = await help_command.execute(bot, "")
+    result = await help_command.execute(bot, "", TEST_CONTEXT)
 
     assert result.success is True
     assert result.message.count("`/ssh`") == 1
 
+
+@pytest.mark.asyncio
+async def test_help_resolves_alias_to_primary_command() -> None:
+    """Alias help should render the canonical command entry."""
+    ssh = SSHCommand()
+    help_command = HelpCommand()
+    bot = SimpleNamespace(
+        config=make_config(),
+        commands={"ssh": ssh, "mosh": ssh},
+    )
+
+    result = await help_command.execute(bot, "mosh", TEST_CONTEXT)
+
+    assert result.success is True
+    assert result.message.startswith("**/ssh**")

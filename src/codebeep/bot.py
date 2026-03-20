@@ -13,10 +13,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import markdown
+import markdown  # type: ignore[import-untyped]
 import simplematrixbotlib as botlib
-from nio import InviteMemberEvent, MegolmEvent, RoomMessageText, RoomPreset
-from nio.responses import (
+from nio import InviteMemberEvent, MegolmEvent, RoomMessageText, RoomPreset  # type: ignore[import-untyped]
+from nio.responses import (  # type: ignore[import-untyped]
     RoomCreateError,
     RoomCreateResponse,
     RoomInviteError,
@@ -59,12 +59,13 @@ class CodeBeepBot:
             config: Bot configuration
         """
         self.config = config
-        auth = None
-        if config.opencode.auth and config.opencode.auth.username and config.opencode.auth.password:
-            auth = (config.opencode.auth.username, config.opencode.auth.password)
+        auth_config = config.opencode.auth
+        auth: tuple[str, str] | None = None
+        if auth_config is not None and auth_config.username and auth_config.password:
+            auth = (auth_config.username, auth_config.password)
 
         if auth:
-            logger.info("OpenCode auth configured for user %s", config.opencode.auth.username)
+            logger.info("OpenCode auth configured for user %s", auth[0])
         else:
             logger.warning("OpenCode auth not configured; requests may be unauthorized")
 
@@ -429,7 +430,8 @@ class CodeBeepBot:
             if isinstance(content, (bytes, bytearray)):
                 content = content.decode("utf-8", errors="ignore")
             if isinstance(content, str):
-                return json.loads(content)
+                payload = json.loads(content)
+                return payload if isinstance(payload, dict) else None
         except Exception:
             return None
         return None
@@ -507,7 +509,7 @@ class CodeBeepBot:
             "Room alias resolve", self.bot.api.async_client.room_resolve_alias, alias
         )
         if isinstance(response, RoomResolveAliasResponse):
-            return response.room_id
+            return response.room_id if isinstance(response.room_id, str) else None
         if isinstance(response, RoomResolveAliasError):
             return None
         room_id = getattr(response, "room_id", None)

@@ -54,6 +54,7 @@ dev = [
     "black>=24.0.0",
     "ruff>=0.3.0",
     "mypy>=1.8.0",
+    "types-PyYAML>=6.0.12",
     "pre-commit>=3.6.0",
 ]
 github = [
@@ -99,6 +100,10 @@ python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["markdown", "nio", "nio.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from codebeep.opencode_client import Message, OpenCodeClient
+from codebeep.opencode_client import Message, OpenCodeClient, OpenCodeInvalidResponseError
 
 
 @pytest.fixture
@@ -62,6 +62,21 @@ class _FakeHttpClient:
     def stream(self, method: str, path: str) -> _FakeStreamResponse:
         self.requested_paths.append(path)
         return self._responses.pop(0)
+
+
+class _RetryingHttpClient:
+    def __init__(self, responses: list[httpx.Response | Exception]) -> None:
+        self._responses = responses
+        self.calls = 0
+        self.requests: list[dict[str, object]] = []
+
+    async def request(self, method: str, path: str, **kwargs) -> httpx.Response:
+        self.calls += 1
+        self.requests.append({"method": method, "path": path, **kwargs})
+        response = self._responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
 
 class TestOpenCodeClient:
@@ -141,3 +156,36 @@ class TestOpenCodeClient:
         assert fake_client.requested_paths == ["/global/event", "/event"]
         assert events[0].type == "session.message"
         assert client.extract_session_id_from_event(events[0]) == "sess-1"
+
+    @pytest.mark.asyncio
+    async def test_request_retries_transport_error(self, client: OpenCodeClient, monkeypatch) -> None:
+        request = httpx.Request("GET", "http://127.0.0.1:4096/session")
+        fake_client = _RetryingHttpClient(
+            [
+                httpx.ConnectError("boom", request=request),
+                httpx.Response(200, request=request, json=[]),
+            ]
+        )
+        client._get_client = AsyncMock(return_value=fake_client)  # type: ignore[attr-defined]
+        sleep = AsyncMock()
+        monkeypatch.setattr("codebeep.opencode_client.asyncio.sleep", sleep)
+        monkeypatch.setattr("codebeep.opencode_client.random.uniform", lambda _a, _b: 0.0)
+
+        sessions = await client.list_sessions()
+
+        assert sessions == []
+        assert fake_client.calls == 2
+        sleep.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_list_sessions_rejects_non_json_payload(self, client: OpenCodeClient) -> None:
+        request = httpx.Request("GET", "http://127.0.0.1:4096/session")
+        fake_client = _RetryingHttpClient(
+            [
+                httpx.Response(200, request=request, text="not-json"),
+            ]
+        )
+        client._get_client = AsyncMock(return_value=fake_client)  # type: ignore[attr-defined]
+
+        with pytest.raises(OpenCodeInvalidResponseError):
+            await client.list_sessions()
